@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -r mauriciomta/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true mauriciomta/react-test npm test
+
+after_success:
+  - docker build -t mauriciomta/fibonacci-client ./client 
+  - docker build -t mauriciomta/fibonacci-nginx ./nginx 
+  - docker build -t mauriciomta/fibonacci-server ./server 
+  - docker build -t mauriciomta/fibonacci-worker ./worker
+  # Log into Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take the images and push to dockerhub
+  - docker push mauriciomta/fibonacci-client
+  - docker push mauriciomta/fibonacci-nginx
+  - docker push mauriciomta/fibonacci-server
+  - docker push mauriciomta/fibonacci-worker
